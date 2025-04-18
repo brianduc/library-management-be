@@ -16,11 +16,11 @@ async function login(email, password) {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return null;
 
-  const token = jwt.sign({ id: user._id }, config.jwt.secret, {
+  const accessToken = jwt.sign({ id: user._id }, config.jwt.secret, {
     expiresIn: config.jwt.expiresIn || "7d",
   });
 
-  return { user, token };
+  return { user, accessToken };
 }
 
 module.exports = {

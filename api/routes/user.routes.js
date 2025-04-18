@@ -17,7 +17,7 @@ router.get(
   "/:id",
   authenticate,
   authorizeRole("admin"),
-  userController.getUser,
+  userController.getUserById,
 );
 router.post(
   "/",

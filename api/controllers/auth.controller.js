@@ -1,6 +1,6 @@
-const authService = require("../services/auth.service");
+const authService = require("../../services/auth.service");
 const { registerSchema, loginSchema } = require("../validators/auth.validator");
-const ResponseHandler = require("../utils/responseHandler");
+const ResponseHandler = require("../../utils/response-handlers");
 
 async function register(req, res, next) {
   try {
@@ -31,10 +31,10 @@ async function login(req, res, next) {
       return ResponseHandler.unauthorized(res, "Invalid email or password");
     }
 
-    const { user, token } = result;
+    const { user, accessToken } = result;
     return ResponseHandler.success(res, {
       message: "Login successful",
-      data: { user, token },
+      data: { user, accessToken },
     });
   } catch (err) {
     if (err.name === "ZodError") {
