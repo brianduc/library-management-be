@@ -3,6 +3,7 @@
 const express = require("express");
 const userRoutes = require("./user.routes");
 const authRoutes = require("./auth.routes");
+const categoryRoutes = require("./category.routes");
 
 const router = express.Router();
 
@@ -14,5 +15,5 @@ router.get("/status", (req, res) => {
 // Mount routes
 router.use("/users", userRoutes);
 router.use("/auth", authRoutes);
-
+router.use("/categories", categoryRoutes);
 module.exports = router;
