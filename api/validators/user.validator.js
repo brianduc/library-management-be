@@ -5,7 +5,7 @@ const baseUserSchema = {
   email: z.string().email("Invalid email"),
   phone: z.string().min(9, "Phone is required"),
   identityNumber: z.string().min(9, "Identity number is required"),
-  role: z.enum(["admin", "staff", "student"]),
+  role: z.enum(["admin", "staff", "member"]),
 };
 
 const createUserSchema = z.object({
