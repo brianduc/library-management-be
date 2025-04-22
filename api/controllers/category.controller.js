@@ -28,7 +28,7 @@ async function createCategory(req, res, next) {
             message: "Validation failed",
             errors: [{
                 "field": "Name",
-                "message": "Name is exit"
+                "message": "Name already exists"
             }]
         });
     }; 
