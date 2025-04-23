@@ -58,7 +58,7 @@ async function seedDatabase() {
       "student123",
       BCRYPT_SALT_ROUNDS,
     );
-    const passwordMember2  = await bcrypt.hash(
+    const passwordMember2 = await bcrypt.hash(
       "student456",
       BCRYPT_SALT_ROUNDS,
     );
@@ -86,7 +86,7 @@ async function seedDatabase() {
         full_name: "Alice Wonderland",
         email: "alice@student.com",
         password: passwordMember1,
-         role: "member",
+        role: "member",
         is_active: true,
         phone: "777888999",
         identity_number: "STU001",
