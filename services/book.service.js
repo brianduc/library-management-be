@@ -1,14 +1,16 @@
 const Book = require("../models/book");
 
 
+const PAGE_SIZE = 10;
+
 async function getAllBookByPage(page) {
   try {
-    const skip = (page - 1) * 10;
+    const skip = (page - 1) * PAGE_SIZE;
     const books = await Book.find()
       .skip(skip)
-      .limit(3);
+      .limit(PAGE_SIZE);
     const total = await Book.countDocuments(); 
-    const totalPages = Math.ceil(total / 10);
+    const totalPages = Math.ceil(total / PAGE_SIZE);
     return {
       currentPage: page,
       totalPages,
