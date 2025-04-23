@@ -47,8 +47,34 @@ async function payFine(req, res, next) {
   }
 }
 
+async function createFine(req, res, next) {
+  try {
+    const { borrow_record_id, amount, reason } = req.body;
+
+    if (!borrow_record_id || !amount) {
+      return ResponseHandler.badRequest(res, {
+        message: "borrow_record_id and amount are required",
+      });
+    }
+
+    const fine = await fineService.createFine({
+      borrow_record_id,
+      amount,
+      reason,
+    });
+
+    return ResponseHandler.success(res, {
+      message: "Fine created successfully",
+      data: fine,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getAllFines,
   getFineByUser,
   payFine,
+  createFine,
 };

@@ -6,5 +6,6 @@ const { authenticate } = require("../middlewares/auth");
 router.get("/", fineController.getAllFines);
 router.get("/me", authenticate, fineController.getFineByUser);
 router.patch("/:id/pay", authenticate, fineController.payFine);
+router.post("/",authenticate, fineController.createFine)
 
 module.exports = router;
