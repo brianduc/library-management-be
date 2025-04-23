@@ -39,7 +39,7 @@ async function createBook(req, res, next) {
             message: "Validation failed",
             errors: [{
                 "field": "title",
-                "message": "title is exit"
+                "message": "title already exists"
             }]
         });
     }
