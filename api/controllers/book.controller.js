@@ -110,7 +110,7 @@ async function changeStatusBook(req, res, next) {
     const book = await bookService.changeStatusBook(req.params.id);
     if (!book) return ResponseHandler.notFound(res, "Book not found");
     return ResponseHandler.success(res, {
-      message: "Book change status successfully",
+      message: "Book status changed successfully",
     });
   } catch (err) {
     next(err);
