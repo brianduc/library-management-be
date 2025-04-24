@@ -20,10 +20,20 @@ async function deleteUser(id) {
   return await User.findByIdAndDelete(id);
 }
 
+async function lockUser(id) {
+  return await User.findByIdAndUpdate(id, { is_active: false }, { new: true });
+}
+
+async function unlockUser(id) {
+  return await User.findByIdAndUpdate(id, { is_active: true }, { new: true });
+}
+
 module.exports = {
   getUserById,
   getAllUsers,
   createUser,
   updateUser,
   deleteUser,
+  lockUser,
+  unlockUser,
 };
