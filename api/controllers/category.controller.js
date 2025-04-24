@@ -68,7 +68,7 @@ async function updateCategory(req, res, next) {
     const {name} = req.body;
     const validated = updateCategorySchema.parse(req.body);
     const find = await categoryService.getCategoryByName(name);
-    if(find){
+    if (find && find._id.toString() !== req.params.id) {
         return res.status(400).json({
             success: "false",
             message: "Validation failed",

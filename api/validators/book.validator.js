@@ -1,10 +1,10 @@
 const { z } = require("zod");
-const bookService = require('../../services/book.service'); 
 
 
 const baseBookSchema = {
   title: z.string().min(1, "Title is required"), 
   author: z.string().min(1, "Author is required"), 
+  image_url:z.string().optional(),
   description: z.string().min(1, "Description is required"), 
   quantity_total: z.number().min(1, "Total quantity must be greater than 0"), 
   quantity_available: z.number().min(0, "Available quantity cannot be less than 0"),
@@ -23,6 +23,7 @@ const updateBookSchema = z.object({
   title: baseBookSchema.title.optional(),
   author: baseBookSchema.author.optional(),
   description: baseBookSchema.description.optional(),
+  image_url:z.string().optional(),
   quantity_total: baseBookSchema.quantity_total.optional(),
   quantity_available: baseBookSchema.quantity_available.optional(),
   status: baseBookSchema.status.optional(),

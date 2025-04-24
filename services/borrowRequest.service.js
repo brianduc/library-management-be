@@ -3,7 +3,7 @@ const BorrowRequest = require("../models/borrow-request");
 const userService = require("../services/user.service");
 const Book = require("../models/book");
 
-const transporter = require("../../utils/mailer")
+const transporter = require("../utils/mailer");
 async function getAll() {
   return await BorrowRequest.find()
     .populate("user_id", "full_name email _id")
@@ -12,15 +12,16 @@ async function getAll() {
 
 async function getByUserId(userId) {
   const userExist = await userService.getUserById(userId);
+
   if (!userExist) return null;
 
-  return await BorrowRequest.find({ user_id: userId }).populate(
-    "book_id",
-    "title author"
-  );
+  return await BorrowRequest.find({ user_id: userId })
+    .populate("user_id", "full_name email _id")
+    .populate("book_id", "title author");
 }
 
 async function create(data) {
+  
   const userExist = await userService.getUserById(data.user_id);
   if (!userExist) {
     return {
@@ -71,10 +72,9 @@ async function create(data) {
 }
 
 async function updateStatus(id, status) {
-  const updateData = { status };
   const data = await BorrowRequest.findById(id)
     .populate("user_id", "full_name email")
-    .populate("book_id", "title");
+    .populate("book_id", "title author");
 
   if (!data) return null;
 
@@ -86,7 +86,8 @@ async function updateStatus(id, status) {
     };
   }
 
-  if (status === "approved") {
+  // Kiểm tra và cập nhật trạng thái sách (chỉ duy nhất một hàm)
+  if (status === "approved" || status === "rejected") {
     const book = await Book.findById(data.book_id);
     if (!book) {
       return {
@@ -96,57 +97,75 @@ async function updateStatus(id, status) {
       };
     }
 
-    if (book.quantity_available <= 0) {
-      return {
-        error: true,
-        message: "Book is currently not available for borrowing",
-        statusCode: 400,
-      };
+    // Chỉ khi duyệt (approved) mới thay đổi số lượng sách
+    if (status === "approved") {
+      if (book.quantity_available <= 0) {
+        return {
+          error: true,
+          message: "Book is currently not available for borrowing",
+          statusCode: 400,
+        };
+      }
+
+      book.quantity_available -= 1;
+      if (book.quantity_available === 0) {
+        book.status = "out_of_stock";
+      }
+      await book.save();
+
+      // Cập nhật ngày duyệt
+      data.approved_date = new Date();
+    } else {
+      // Cập nhật ngày từ chối
+      data.rejected_date = new Date();
     }
 
-    book.quantity_available -= 1;
-    if (book.quantity_available === 0) {
-      book.status = "out_of_stock";
-    }
-
-    await book.save();
-    updateData.approved_date = new Date();
-  }
-
-  if (status === "rejected") {
-    updateData.rejected_date = new Date();
-
-    // Gửi email từ chối
-    await sendRejectionEmail(
+    // Gửi email tương ứng
+    await sendEmail(
       data.user_id.email,
       data.user_id.full_name,
-      data.book_id.title
+      data.book_id.title,
+      status,
     );
   }
 
-  return await BorrowRequest.findByIdAndUpdate(id, updateData, { new: true })
-    .populate("user_id", "full_name email _id")
-    .populate("book_id", "title author");
+  // Cập nhật trạng thái của yêu cầu mượn
+  data.status = status;
+  await data.save();
+
+  return data;
 }
 
-async function sendRejectionEmail(email, fullName, bookTitle) {
-  console.log("sendRejectionEmail", email, fullName, bookTitle)
+// Hàm gửi email chung cho cả phê duyệt và từ chối
+async function sendEmail(email, fullName, bookTitle, status) {
+  const subject =
+    status === "approved"
+      ? "Yêu cầu mượn sách đã được duyệt"
+      : "Yêu cầu mượn sách đã bị từ chối";
 
+  const html =
+    status === "approved"
+      ? `<p>Chào ${fullName},</p>
+         <p>Chúng tôi vui mừng thông báo rằng yêu cầu mượn sách <strong>${bookTitle}</strong> của bạn đã được duyệt.</p>
+         <p>Vui lòng đến thư viện để nhận sách trong thời gian quy định.</p>
+         <p>Trân trọng,<br/>Hệ thống thư viện</p>`
+      : `<p>Chào ${fullName},</p>
+         <p>Rất tiếc, yêu cầu mượn sách <strong>${bookTitle}</strong> của bạn đã bị từ chối.</p>
+         <p>Vui lòng liên hệ với thư viện để biết thêm chi tiết.</p>
+         <p>Trân trọng,<br/>Hệ thống thư viện</p>`;
 
   const mailOptions = {
     from: '"Library System" <your.email@gmail.com>',
     to: email,
-    subject: "Yêu cầu mượn sách đã bị từ chối",
-    html: `<p>Chào ${fullName},</p>
-           <p>Rất tiếc, yêu cầu mượn sách <strong>${bookTitle}</strong> của bạn đã bị từ chối.</p>
-           <p>Vui lòng liên hệ với thư viện để biết thêm chi tiết.</p>
-           <p>Trân trọng,<br/>Hệ thống thư viện</p>`,
+    subject: subject,
+    html: html,
   };
+
   try {
     await transporter.sendMail(mailOptions);
-    console.log("Rejection email sent successfully");
+    console.log(`${status} email sent successfully`);
   } catch (error) {
-    console.error("Error sending rejection email:", error);
+    console.error(`Error sending ${status} email:`, error);
   }
 }
 

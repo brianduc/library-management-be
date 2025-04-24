@@ -11,7 +11,7 @@ router.post("/",
 // Lấy tất cả BorrowRecords
 router.get("/",
     authenticate,
-    authorizeRole("staff",'admin'),
+    authorizeRole("staff",'admin','member'),
      borrowRecordController.getAllBorrowRecords);
 
 // Lấy các BorrowRecords của một người dùng cụ thể

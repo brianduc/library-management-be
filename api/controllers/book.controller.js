@@ -30,8 +30,11 @@ async function getBookById(req, res, next) {
 }
 
 async function createBook(req, res, next) {
+  console.log("req.body",req.body)
   try {
     const validated = createBookSchema.parse(req.body);
+    console.log("validated", validated);
+
     const exitTitle = await bookService.getBookByTitle(req.body.title);
     if(exitTitle){
         return res.status(400).json({
@@ -64,16 +67,19 @@ async function createBook(req, res, next) {
 async function updateBook(req, res, next) {
   try {
     const validated = updateBookSchema.parse(req.body);
+    console.log("validated", validated)
     const exitTitle = await bookService.getBookByTitle(req.body.title);
-    if(exitTitle){
-        return res.status(400).json({
-            success: "false",
-            message: "Validation failed",
-            errors: [{
-                "field": "title",
-                "message": "title is exit"
-            }]
-        });
+    if (exitTitle && exitTitle._id.toString() !== req.params.id) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: [
+          {
+            field: "title",
+            message: "Title is already taken by another book",
+          },
+        ],
+      });
     }
     const updateBook = await bookService.updateBook(req.params.id, validated);
     if (!updateBook) return ResponseHandler.notFound(res, "Book not found");
