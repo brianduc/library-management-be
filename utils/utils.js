@@ -8,6 +8,16 @@ function generatePassword(length = 8) {
   return pwd;
 }
 
+function generateMemberId(length = 6) {
+  const chars = "0123456789";
+  let id = "LMB";
+  for (let i = 0; i < length; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return id;
+}
+
 module.exports = {
   generatePassword,
+  generateMemberId,
 };

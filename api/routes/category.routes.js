@@ -11,6 +11,13 @@ router.get(
   categoryController.getAllCategory,
 );
 
+router.get(
+  "/:id",
+  authenticate,
+  authorizeRole("admin", "staff", "member"),
+  categoryController.getCategoryById,
+);  
+
 router.post(
   "/",
   authenticate,
