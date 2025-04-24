@@ -78,6 +78,7 @@ async function autoCreateFine(res, userId) {
   const check_borrow_record = await BorrowRecord.find({
     user_id: userId,
     is_returned: false,
+
   });
   const current_date = new Date();
 
@@ -114,12 +115,11 @@ async function autoCreateFine(res, userId) {
     });
 
     if (existingFine) {
-      // Nếu đã có fine chưa thanh toán, cập nhật amount và reason
+      // Nếu đã có fine, cập nhật amount và reason
       existingFine.amount = fineAmount;
       existingFine.reason = fineReason;
       await existingFine.save();
     } else {
-      // Kiểm tra xem đã có fine đã thanh toán chưa
       const paidFine = await Fine.findOne({
         borrow_record_id: borrowRecord._id,
         is_paid: true
