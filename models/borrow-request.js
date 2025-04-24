@@ -18,6 +18,8 @@ const borrowRequestSchema = new mongoose.Schema({
   },
   request_date: { type: Date, default: Date.now },
   approved_date: { type: Date },
+  rejected_date: { type: Date },
+  
 });
 
 module.exports = mongoose.model("BorrowRequest", borrowRequestSchema);

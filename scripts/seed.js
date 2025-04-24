@@ -54,11 +54,11 @@ async function seedDatabase() {
     console.log("Seeding users...");
     const passwordAdmin = await bcrypt.hash("admin123", BCRYPT_SALT_ROUNDS);
     const passwordStaff = await bcrypt.hash("staff123", BCRYPT_SALT_ROUNDS);
-    const passwordStudent1 = await bcrypt.hash(
+    const passwordMember1 = await bcrypt.hash(
       "student123",
       BCRYPT_SALT_ROUNDS,
     );
-    const passwordStudent2 = await bcrypt.hash(
+    const passwordMember2 = await bcrypt.hash(
       "student456",
       BCRYPT_SALT_ROUNDS,
     );
@@ -85,8 +85,8 @@ async function seedDatabase() {
       {
         full_name: "Alice Wonderland",
         email: "alice@student.com",
-        password: passwordStudent1,
-        role: "student",
+        password: passwordMember1,
+        role: "member",
         is_active: true,
         phone: "777888999",
         identity_number: "STU001",
@@ -94,16 +94,16 @@ async function seedDatabase() {
       {
         full_name: "Bob The Builder",
         email: "bob@student.com",
-        password: passwordStudent2,
-        role: "student",
+        password: passwordMember2,
+        role: "member",
         is_active: true,
         phone: "123123123",
         identity_number: "STU002",
       },
     ]);
     console.log(`${users.length} users seeded.`);
-    const studentUser1 = users.find((u) => u.email === "alice@student.com");
-    const studentUser2 = users.find((u) => u.email === "bob@student.com");
+    const memberUser1 = users.find((u) => u.email === "alice@student.com");
+    const memberUser2 = users.find((u) => u.email === "bob@student.com");
 
     // --- Seed Books ---
     console.log("Seeding books...");
@@ -172,20 +172,20 @@ async function seedDatabase() {
     const borrowRequests = await BorrowRequest.insertMany([
       {
         // Pending request
-        user_id: studentUser1._id,
+        user_id: memberUser1._id,
         book_id: gatsbyBook._id,
         status: "pending",
       },
       {
         // Approved request (will become a record)
-        user_id: studentUser2._id,
+        user_id: memberUser2._id,
         book_id: cleanCodeBook._id,
         status: "approved",
         approved_date: new Date(),
       },
       {
         // Rejected request
-        user_id: studentUser1._id,
+        user_id: memberUser1._id,
         book_id: outOfStockBook._id, // Requesting an out-of-stock book
         status: "rejected",
       },
@@ -217,7 +217,7 @@ async function seedDatabase() {
       },
       {
         // Overdue and returned late
-        user_id: studentUser1._id,
+        user_id: memberUser1._id,
         book_id: sapiensBook._id,
         borrow_date: pastBorrowDate,
         due_date: pastDueDate,
@@ -226,7 +226,7 @@ async function seedDatabase() {
       },
       {
         // Borrowed and returned on time (example)
-        user_id: studentUser2._id,
+        user_id: memberUser2._id,
         book_id: gatsbyBook._id, // Borrowed another book
         borrow_date: new Date(today.setDate(today.getDate() - 10)), // Borrowed 10 days ago
         due_date: new Date(today.setDate(today.getDate() + 4)), // Due in 4 days from original borrow date
@@ -252,7 +252,7 @@ async function seedDatabase() {
       },
       {
         // Fine for a damaged book, linked to the same user's late return record for simplicity
-        user_id: studentUser1._id,
+        user_id: memberUser1._id,
         borrow_record_id: lateReturnRecord._id, // Link to an existing record for this user
         amount: 20.0,
         reason: "Book damaged",
@@ -265,19 +265,19 @@ async function seedDatabase() {
     console.log("Seeding reviews...");
     const reviews = await Review.insertMany([
       {
-        user_id: studentUser1._id,
+        user_id: memberUser1._id,
         book_id: sapiensBook._id, // Reviewed the book they returned late
         rating: 4,
         comment: "Very insightful, but a bit dense in places.",
       },
       {
-        user_id: studentUser2._id,
+        user_id: memberUser2._id,
         book_id: cleanCodeBook._id, // Reviewed the book they currently have
         rating: 5,
         comment: "A must-read for every developer!",
       },
       {
-        user_id: studentUser2._id,
+        user_id: memberUser2._id,
         book_id: gatsbyBook._id, // Reviewed the book they returned on time
         rating: 3,
         comment: "It was okay.",
@@ -302,7 +302,7 @@ async function seedDatabase() {
       },
       {
         // General notification
-        user_id: studentUser2._id,
+        user_id: memberUser2._id,
         content: "Welcome to the Library Management System!",
         is_read: true,
       },

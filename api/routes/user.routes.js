@@ -2,10 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const userController = require("../controllers/user.controller");
-const {
-  authenticate,
-  authorizeRole,
-} = require("../middlewares/auth");
+const { authenticate, authorizeRole } = require("../middlewares/auth");
 
 router.get(
   "/",
@@ -36,6 +33,18 @@ router.delete(
   authenticate,
   authorizeRole("admin"),
   userController.deleteUser,
+);
+router.patch(
+  "/:id/lock",
+  authenticate,
+  authorizeRole("admin"),
+  userController.lockUser,
+);
+router.patch(
+  "/:id/unlock",
+  authenticate,
+  authorizeRole("admin"),
+  userController.unlockUser,
 );
 
 module.exports = router;

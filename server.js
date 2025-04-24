@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 const startServer = require("./app");
-
+require("dotenv").config();
 // Start the application
 startServer()
   .then(() => {

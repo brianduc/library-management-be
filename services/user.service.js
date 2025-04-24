@@ -9,15 +9,38 @@ async function getAllUsers() {
 }
 
 async function createUser(data) {
+  // Check if the user already exists
+  const existingUser = await User.findOne({
+    $or: [
+      { email: data.email },
+      { phone: data.phone },
+      { identity_number: data.identity_number },
+    ],
+  });
+  if (existingUser) {
+    throw new Error("User already exists");
+  }
   return await User.create(data);
 }
 
 async function updateUser(id, data) {
+  const existingUser = await User.findById(id);
+  if (!existingUser) {
+    throw new Error("User not found");
+  }
   return await User.findByIdAndUpdate(id, data, { new: true });
 }
 
 async function deleteUser(id) {
   return await User.findByIdAndDelete(id);
+}
+
+async function lockUser(id) {
+  return await User.findByIdAndUpdate(id, { is_active: false }, { new: true });
+}
+
+async function unlockUser(id) {
+  return await User.findByIdAndUpdate(id, { is_active: true }, { new: true });
 }
 
 module.exports = {
@@ -26,4 +49,6 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
+  lockUser,
+  unlockUser,
 };
