@@ -32,7 +32,6 @@ async function authenticate(req, res, next) {
 }
 
 function authorizeRole(...allowedRoles) {
-  console.log(allowedRoles)
   return (req, res, next) => {
     if (!req.user || !allowedRoles.includes(req.user.role)) {
       console.log(req.user.role)
