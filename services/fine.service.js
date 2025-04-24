@@ -2,8 +2,8 @@ const Fine = require("../models/fine");
 const BorrowRecord = require("../models/borrow-record");
 const Book = require("../models/book");
 
-async function getAllFines() {
-  return await Fine.find()
+async function getAllFines(res) {
+  const fines = await Fine.find()
     .populate('user_id', 'name email')
     .populate({
       path: 'borrow_record_id',
@@ -14,10 +14,14 @@ async function getAllFines() {
         select: 'title author'
       }
     });
+    if(fines.length === 0){
+      return ResponseHandler.error(res, { message: "Do not have any fine" });
+    }
+    return fines;
 }
 
-async function getFineByUser(userId) {
-  return await Fine.find({ user_id: userId })
+async function getFineByUser(res, userId) {
+  const fines = await Fine.find({ user_id: userId })
     .populate('user_id', 'name email')
     .populate({
       path: 'borrow_record_id',
@@ -28,29 +32,33 @@ async function getFineByUser(userId) {
         select: 'title author'
       }
     });
+    if(fines.length === 0){
+      return ResponseHandler.error(res, { message: "Do not have any fine" });
+    }
+    return fines; 
 }
 
 async function payFine(fineId) {
   const fine = await Fine.findById(fineId);
   if (!fine) {
-    throw new Error("Fine not found");
+    return ResponseHandler.error(res, { message: "Fine not found" });
   }
   if (fine.is_paid) {
-    throw new Error("Fine already paid");
+    return ResponseHandler.error(res, { message: "Fine already paid" });
   }
   fine.is_paid = true;
   await fine.save();
   return fine;
 }
 
-async function createFine(fineData) {
+async function createFine(res, fineData) {
   const borrowRecord = await BorrowRecord.findById(fineData.borrow_record_id);
   if (!borrowRecord) {
-    throw new Error("Borrow record not found");
+    return ResponseHandler.error(res, { message: "Borrow record not found" });
   }
   const userId = borrowRecord.user_id;
   const bookId = borrowRecord.book_id;
-  const fineAmount = fineData.amount;
+  const fineAmount =  fineData.amount;
   const fineReason = fineData.reason;
   const fine = new Fine({
     user_id: userId,
@@ -104,13 +112,13 @@ async function createFine(fineData) {
 //     }
 //   }
 // }
-async function autoCreateFine(userId) {
+async function autoCreateFine(res, userId) {
   const check_borrow_record = await BorrowRecord.find({
     user_id: userId,
     is_returned: false,
   });
 
-  if (check_borrow_record.length === 0) return;
+  if (check_borrow_record.length === 0) return ResponseHandler.error(res, { message: "Do not have any borrow record" });
 
   const current_date = new Date();
 

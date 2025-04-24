@@ -3,7 +3,7 @@ const ResponseHandler = require("../../utils/response-handlers");
 
 async function getAllFines(req, res, next) {
   try {
-    const fines = await fineService.getAllFines();
+    const fines = await fineService.getAllFines(res);
     return ResponseHandler.success(res, {
       message: "List of fines fetched successfully",
       data: fines,
@@ -16,7 +16,7 @@ async function getAllFines(req, res, next) {
 async function getFineByUser(req, res, next) {
   try {
     const userId = req.user._id; // Get user ID from authenticated user
-    const fines = await fineService.getFineByUser(userId);
+    const fines = await fineService.getFineByUser(res, userId);
     if (fines.length === 0) {
       return ResponseHandler.notFound(res, {
         message: "No fines found",
@@ -35,7 +35,7 @@ async function getFineByUser(req, res, next) {
 async function payFine(req, res, next) {
   try {
     const fineId = req.params.id;
-    const fine = await fineService.payFine(fineId);
+    const fine = await fineService.payFine(res, fineId);
     fine.is_paid = true;
     await fine.save();
     return ResponseHandler.success(res, {
@@ -57,7 +57,7 @@ async function createFine(req, res, next) {
       });
     }
 
-    const fine = await fineService.createFine({
+    const fine = await fineService.createFine(res, {
       borrow_record_id,
       amount,
       reason,
