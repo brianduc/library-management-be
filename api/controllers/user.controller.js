@@ -16,6 +16,17 @@ async function getAllUsers(req, res, next) {
     next(err);
   }
 }
+async function getAllUsersv2(req, res, next) {
+  try {
+    const users = await userService.getAllUsersv2();
+    return ResponseHandler.success(res, {
+      message: "List of users fetched successfully",
+      data: users,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
 
 async function getUserById(req, res, next) {
   try {
@@ -90,4 +101,5 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
+  getAllUsersv2,
 };

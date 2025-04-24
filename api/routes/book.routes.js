@@ -11,6 +11,12 @@ router.get(
   bookController.getAllBooks,
 );
 router.get(
+  "/v2",
+  authenticate,
+  authorizeRole("admin", "staff", "member"),
+  bookController.getAllBooksv2,
+);
+router.get(
   "/:id",
   authenticate,
   authorizeRole("admin", "staff", "member"),

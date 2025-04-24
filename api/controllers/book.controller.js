@@ -16,6 +16,17 @@ async function getAllBooks(req, res, next) {
     next(err);
   }
 }
+async function getAllBooksv2(req, res, next) {
+  try {
+    const books = await bookService.getAllBooksv2();
+    return ResponseHandler.success(res, {
+      message: "List of books fetched successfully",
+      data: books,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
 async function getBookById(req, res, next) {
   try {
     const book = await bookService.getBookById(req.params.id);
@@ -123,4 +134,5 @@ module.exports = {
   updateBook,
   deleteBook,
   changeStatusBook,
+  getAllBooksv2,
 };

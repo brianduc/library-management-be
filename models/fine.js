@@ -9,7 +9,10 @@ const fineSchema = new mongoose.Schema({
   borrow_record_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "BorrowRecord",
-    required: true,
+  },
+  book_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Book",
   },
   amount: { type: Number, required: true },
   reason: { type: String },

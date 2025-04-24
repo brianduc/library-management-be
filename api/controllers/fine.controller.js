@@ -1,5 +1,6 @@
 const fineService = require("../../services/fine.service");
 const ResponseHandler = require("../../utils/response-handlers");
+const mongoose = require("mongoose");
 
 async function getAllFines(req, res, next) {
   try {
@@ -35,9 +36,13 @@ async function getFineByUser(req, res, next) {
 async function payFine(req, res, next) {
   try {
     const fineId = req.params.id;
-    const fine = await fineService.payFine(res, fineId);
-    fine.is_paid = true;
-    await fine.save();
+    if (!mongoose.Types.ObjectId.isValid(fineId)) {
+      return ResponseHandler.error(res, { message: "Invalid fine ID format" });
+    }
+    const fine = await fineService.payFine(fineId);
+    if (!fine) {
+      return ResponseHandler.error(res, { message: "Fine not found" });
+    }
     return ResponseHandler.success(res, {
       message: "Fine paid successfully",
       data: fine,
@@ -49,16 +54,17 @@ async function payFine(req, res, next) {
 
 async function createFine(req, res, next) {
   try {
-    const { borrow_record_id, amount, reason } = req.body;
+    const { user_id, amount, reason, book_id } = req.body;
 
-    if (!borrow_record_id || !amount) {
+    if (!user_id || !amount) {
       return ResponseHandler.badRequest(res, {
-        message: "borrow_record_id and amount are required",
+        message: "user_id and amount are required",
       });
     }
 
     const fine = await fineService.createFine(res, {
-      borrow_record_id,
+      user_id,
+      book_id,
       amount,
       reason,
     });

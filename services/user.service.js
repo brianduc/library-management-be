@@ -8,6 +8,10 @@ async function getAllUsers() {
   return await User.find();
 }
 
+async function getAllUsersv2() {
+  return await User.find({role: "member"}).select("-password");
+}
+
 async function createUser(data) {
   return await User.create(data);
 }
@@ -26,4 +30,5 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
+  getAllUsersv2,
 };

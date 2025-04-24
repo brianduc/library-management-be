@@ -7,11 +7,17 @@ const {
   authorizeRole,
 } = require("../middlewares/auth");
 
+  router.get(
+    "/",
+    authenticate,
+    authorizeRole("admin"),
+    userController.getAllUsers,
+  );
 router.get(
-  "/",
+  "/v2",
   authenticate,
   authorizeRole("admin"),
-  userController.getAllUsers,
+  userController.getAllUsersv2,
 );
 router.get(
   "/:id",

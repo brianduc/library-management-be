@@ -30,5 +30,5 @@ startServer()
     process.exit(1);
   });
 checkAndCreateFines();
-setInterval(checkAndCreateFines, 10000); // 30000 milliseconds = 30 seconds
+// setInterval(checkAndCreateFines, 10000); // 30000 milliseconds = 30 seconds
 

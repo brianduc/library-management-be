@@ -23,6 +23,10 @@ async function getAllBookByPage(page) {
   }
 }
 
+async function getAllBooksv2() {
+  return await Book.find({})
+}
+
 async function getBookByTitle(title) {
   const book = await Book.findOne({ title });
   return book;  
@@ -63,4 +67,5 @@ module.exports = {
   deleteBook,
   getBookByTitle,
   changeStatusBook,
+  getAllBooksv2,
 };

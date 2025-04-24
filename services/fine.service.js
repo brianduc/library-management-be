@@ -2,6 +2,7 @@ const Fine = require("../models/fine");
 const BorrowRecord = require("../models/borrow-record");
 const Book = require("../models/book");
 const ResponseHandler = require("../utils/response-handlers");
+const { default: mongoose } = require("mongoose");
 
 async function getAllFines(res) {
   const fines = await Fine.find()
@@ -13,8 +14,8 @@ async function getAllFines(res) {
         path: 'book_id',
         model: 'Book',
         select: 'title author'
-      }
-    });
+      },
+    }).populate('book_id', 'title author');
     if(fines.length === 0){
       return ResponseHandler.error(res, { message: "Do not have any fine" });
     }
@@ -42,10 +43,7 @@ async function getFineByUser(res, userId) {
 async function payFine(fineId) {
   const fine = await Fine.findById(fineId);
   if (!fine) {
-    return ResponseHandler.error(res, { message: "Fine not found" });
-  }
-  if (fine.is_paid) {
-    return ResponseHandler.error(res, { message: "Fine already paid" });
+    return null;
   }
   fine.is_paid = true;
   await fine.save();
@@ -53,17 +51,14 @@ async function payFine(fineId) {
 }
 
 async function createFine(res, fineData) {
-  const borrowRecord = await BorrowRecord.findById(fineData.borrow_record_id);
-  if (!borrowRecord) {
-    return ResponseHandler.error(res, { message: "Borrow record not found" });
-  }
-  const userId = borrowRecord.user_id;
-  const bookId = borrowRecord.book_id;
+
+  const userId = fineData.user_id;
+  const bookId = fineData.book_id;
   const fineAmount =  fineData.amount;
   const fineReason = fineData.reason;
   const fine = new Fine({
     user_id: userId,
-    borrow_record_id: borrowRecord._id,
+    book_id: bookId,
     amount: fineAmount,
     reason: fineReason,
   });
@@ -71,48 +66,44 @@ async function createFine(res, fineData) {
   return await fine.populate([
     { path: 'user_id', select: 'full_name email' },
     {
-      path: 'borrow_record_id',
-      model: 'BorrowRecord',
-      populate: {
-        path: 'book_id',
-        model: 'Book',
-        select: 'title author'
-      }
+      path: 'book_id',
+      model: 'Book',
+      select: 'title author'
     }
   ]);
 }
 
-// async function autoCreateFine(userId) {
+async function autoCreateFine(userId) {
 
-//   const check_borrow_record = await BorrowRecord.find({ user_id: userId, is_returned: false });
+  const check_borrow_record = await BorrowRecord.find({ user_id: userId, is_returned: false });
 
-//   if (check_borrow_record.length === 0) {
-//     return;
-//   }
-//   for (const borrowRecord of check_borrow_record) {
-//     const book = await Book.findById(borrowRecord.book_id);
-//     const due_date = new Date(borrowRecord.due_date);
-//     const current_date = new Date();
+  if (check_borrow_record.length === 0) {
+    return;
+  }
+  for (const borrowRecord of check_borrow_record) {
+    const book = await Book.findById(borrowRecord.book_id);
+    const due_date = new Date(borrowRecord.due_date);
+    const current_date = new Date();
 
-//     // Calculate difference in days
-//     const diffTime = Math.abs(current_date - due_date);
-//     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Calculate difference in days
+    const diffTime = Math.abs(current_date - due_date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-//     if (diffDays > 0) {
-//       // Calculate fine amount: 500 per day
-//       const fineAmount = diffDays * 5000;
-//       const fineReason = `Trả muộn sách ${diffDays} ngày`;
+    if (diffDays > 0) {
+      // Calculate fine amount: 500 per day
+      const fineAmount = diffDays * 5000;
+      const fineReason = `Trả muộn sách ${diffDays} ngày`;
 
-//       const fine = new Fine({
-//         user_id: userId,
-//         borrow_record_id: borrowRecord._id,
-//         amount: fineAmount,
-//         reason: fineReason,
-//       });
-//       await fine.save();
-//     }
-//   }
-// }
+      const fine = new Fine({
+        user_id: userId,
+        borrow_record_id: borrowRecord._id,
+        amount: fineAmount,
+        reason: fineReason,
+      });
+      await fine.save();
+    }
+  }
+}
 async function autoCreateFine(res, userId) {
   const check_borrow_record = await BorrowRecord.find({
     user_id: userId,
