@@ -36,6 +36,7 @@
             },
             "description": "Registers a new user. Requires fullname, email, phone, identityNumber, password, and role (admin, staff, or member)."
           },
+
           "response": []
         },
         {

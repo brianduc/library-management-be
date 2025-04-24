@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+const ResponseHandler = require("../../utils/response-handlers");
 /**
  * Error handling middleware for Express.js applications.
  * This middleware captures errors thrown in the application and sends a standardized error response.
@@ -8,7 +9,7 @@
  * @param {Object} res - The response object.
  */
 
-function errorHandler(err, req, res) {
+function errorHandler(err, req, res, next) {
   const status = err.status || 500;
   const message = err.message || "Internal Server Error";
 
