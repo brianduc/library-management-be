@@ -2,7 +2,7 @@ const ResponseHandler = require("../../utils/response-handlers");
 const reviewService = require("../../services/review.service");
 async function getAllReviewsOfBook(req, res, next) {
   try {
-    const reviews = await reviewService.getAllReviewsOfBook(req.params.bookId);
+    const reviews = await reviewService.getAllReviewsOfBook(res, req.params.bookId);
     return ResponseHandler.success(res, {
       message: "Reviews fetched successfully",
       data: reviews,
@@ -13,7 +13,7 @@ async function getAllReviewsOfBook(req, res, next) {
 }
 async function createReview(req, res, next) {
   try {
-    const review = await reviewService.createReview(req.body, req.user.id);
+    const review = await reviewService.createReview(res, req.body, req.user.id);
     return ResponseHandler.success(res, {
       message: "Review created successfully",
       data: review,
@@ -28,7 +28,7 @@ async function updateReview(req, res, next) {
     const reviewId = req.params.reviewId;
     console.log(req.body);
 
-    const review = await reviewService.updateReview(reviewId, req.body);
+    const review = await reviewService.updateReview(res, reviewId, req.body);
     if (!review) {
       return ResponseHandler.error(res, {
         message: "Review not found",
@@ -53,7 +53,7 @@ async function updateReview(req, res, next) {
 async function deleteReview(req, res, next) {
   try {
     const reviewId = req.params.reviewId;
-    await reviewService.deleteReview(reviewId, req.user.id);
+    await reviewService.deleteReview(res, reviewId, req.user.id);
     return ResponseHandler.success(res, {
       message: "Review deleted successfully",
     });
@@ -64,9 +64,9 @@ async function deleteReview(req, res, next) {
 
 async function getNotReviewedBooks(req, res, next) {
   try {
-    const books = await reviewService.getNotReviewedBooks(req.user.id);
+    const books = await reviewService.getNotReviewedBooks(res, req.user.id);
     return ResponseHandler.success(res, {
-      message: "Not reviewed books fetched successfully",
+      message: "Not-reviewed books fetched successfully",
       data: books,
     });
   } catch (err) {
