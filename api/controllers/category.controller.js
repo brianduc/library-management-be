@@ -17,6 +17,19 @@ async function getAllCategory(req, res, next) {
   }
 }
 
+async function getCategoryById(req, res, next) {
+  try {
+    const cate = await categoryService.getCategoryById(req.params.id);
+    if (!cate) return ResponseHandler.notFound(res, "Category not found");
+    return ResponseHandler.success(res, {
+      message: "Category fetched successfully",
+      data: cate,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function createCategory(req, res, next) {
   try {
     const {name} = req.body;
@@ -97,6 +110,7 @@ async function deleteCategory(req, res, next) {
 
 module.exports = {
   getAllCategory,
+  getCategoryById,
   createCategory,
   updateCategory,
   deleteCategory,
