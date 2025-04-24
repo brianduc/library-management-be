@@ -3,7 +3,7 @@ const book = require("../models/book");
 const userService = require("../services/user.service");
 async function getAll() {
   const borrowRecords = await BorrowRecord.find()
-    .populate("user_id", "full_name email _id")
+    .populate("user_id", "full_name email _id identity_number")
     .populate("book_id", "title author");
   return borrowRecords;
 }
@@ -16,7 +16,7 @@ async function getByUserId(userId) {
 
   return await BorrowRecord.find({ user_id: userId })
     .populate("book_id", "title author")
-    .populate("user_id", "full_name email");
+    .populate("user_id", "full_name email identity_number");
 }
 
 async function create(data) {
@@ -47,7 +47,8 @@ async function create(data) {
   const borrowRecord = new BorrowRecord({
     user_id: data.user_id,
     book_id: data.book_id,
-    due_date: data.due_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    // due_date: data.due_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    due_date: new Date(Date.now() + 1 * 60 * 1000),
   });
 
   await borrowRecord.save();

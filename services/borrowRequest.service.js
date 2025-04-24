@@ -1,7 +1,9 @@
-const borrowRecord = require("../models/borrow-record");
+const BorrowRecord = require("../models/borrow-record");
 const BorrowRequest = require("../models/borrow-request");
 const userService = require("../services/user.service");
 const Book = require("../models/book");
+
+const transporter = require("../../utils/mailer")
 async function getAll() {
   return await BorrowRequest.find()
     .populate("user_id", "full_name email _id")
@@ -10,12 +12,11 @@ async function getAll() {
 
 async function getByUserId(userId) {
   const userExist = await userService.getUserById(userId);
-  if (!userExist) {
-    return null;
-  }
+  if (!userExist) return null;
+
   return await BorrowRequest.find({ user_id: userId }).populate(
     "book_id",
-    "title author",
+    "title author"
   );
 }
 
@@ -38,7 +39,7 @@ async function create(data) {
     };
   }
 
-  const isBorrowing = await borrowRecord.findOne({
+  const isBorrowing = await BorrowRecord.findOne({
     user_id: data.user_id,
     book_id: data.book_id,
     is_returned: false,
@@ -69,23 +70,24 @@ async function create(data) {
   return (await BorrowRequest.create(data)).toObject();
 }
 
-
 async function updateStatus(id, status) {
   const updateData = { status };
-  const data = await BorrowRequest.findById(id);
+  const data = await BorrowRequest.findById(id)
+    .populate("user_id", "full_name email")
+    .populate("book_id", "title");
+
   if (!data) return null;
-  if(data.status ==="approved")   return {
-    error: true,
-    message: "Borrow request is already approved",
-    statusCode: 400,
-  }; 
 
-  console.log("update data", status)
- 
+  if (data.status === "approved") {
+    return {
+      error: true,
+      message: "Borrow request is already approved",
+      statusCode: 400,
+    };
+  }
+
   if (status === "approved") {
-    // Lấy thông tin sách
     const book = await Book.findById(data.book_id);
-
     if (!book) {
       return {
         error: true,
@@ -93,8 +95,8 @@ async function updateStatus(id, status) {
         statusCode: 404,
       };
     }
+
     if (book.quantity_available <= 0) {
-      console.log()
       return {
         error: true,
         message: "Book is currently not available for borrowing",
@@ -102,10 +104,7 @@ async function updateStatus(id, status) {
       };
     }
 
-    // Trừ số lượng sách khả dụng
     book.quantity_available -= 1;
-
-    // Nếu sau khi trừ còn 0, cập nhật status của sách thành "out_of_stock"
     if (book.quantity_available === 0) {
       book.status = "out_of_stock";
     }
@@ -113,9 +112,42 @@ async function updateStatus(id, status) {
     await book.save();
     updateData.approved_date = new Date();
   }
+
+  if (status === "rejected") {
+    updateData.rejected_date = new Date();
+
+    // Gửi email từ chối
+    await sendRejectionEmail(
+      data.user_id.email,
+      data.user_id.full_name,
+      data.book_id.title
+    );
+  }
+
   return await BorrowRequest.findByIdAndUpdate(id, updateData, { new: true })
     .populate("user_id", "full_name email _id")
     .populate("book_id", "title author");
+}
+
+async function sendRejectionEmail(email, fullName, bookTitle) {
+  console.log("sendRejectionEmail", email, fullName, bookTitle)
+
+
+  const mailOptions = {
+    from: '"Library System" <your.email@gmail.com>',
+    to: email,
+    subject: "Yêu cầu mượn sách đã bị từ chối",
+    html: `<p>Chào ${fullName},</p>
+           <p>Rất tiếc, yêu cầu mượn sách <strong>${bookTitle}</strong> của bạn đã bị từ chối.</p>
+           <p>Vui lòng liên hệ với thư viện để biết thêm chi tiết.</p>
+           <p>Trân trọng,<br/>Hệ thống thư viện</p>`,
+  };
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Rejection email sent successfully");
+  } catch (error) {
+    console.error("Error sending rejection email:", error);
+  }
 }
 
 module.exports = {
