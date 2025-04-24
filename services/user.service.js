@@ -9,10 +9,25 @@ async function getAllUsers() {
 }
 
 async function createUser(data) {
+  // Check if the user already exists
+  const existingUser = await User.findOne({
+    $or: [
+      { email: data.email },
+      { phone: data.phone },
+      { identity_number: data.identity_number },
+    ],
+  });
+  if (existingUser) {
+    throw new Error("User already exists");
+  }
   return await User.create(data);
 }
 
 async function updateUser(id, data) {
+  const existingUser = await User.findById(id);
+  if (!existingUser) {
+    throw new Error("User not found");
+  }
   return await User.findByIdAndUpdate(id, data, { new: true });
 }
 
