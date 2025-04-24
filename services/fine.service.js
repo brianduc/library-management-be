@@ -1,10 +1,11 @@
 const Fine = require("../models/fine");
 const BorrowRecord = require("../models/borrow-record");
 const Book = require("../models/book");
+const ResponseHandler = require("../utils/response-handlers");
 
 async function getAllFines(res) {
   const fines = await Fine.find()
-    .populate('user_id', 'name email')
+    .populate('user_id', 'full_name email')
     .populate({
       path: 'borrow_record_id',
       model: 'BorrowRecord',
@@ -117,8 +118,6 @@ async function autoCreateFine(res, userId) {
     user_id: userId,
     is_returned: false,
   });
-
-  if (check_borrow_record.length === 0) return ResponseHandler.error(res, { message: "Do not have any borrow record" });
 
   const current_date = new Date();
 
