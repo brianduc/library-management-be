@@ -9,7 +9,9 @@ async function checkAndCreateFines() {
     console.log("Checking for overdue books and creating fines...");
     const users = await User.find();
     for (const user of users) {
-      await autoCreateFine(user._id);
+      if (user._id) {  // Check if user._id exists
+        await autoCreateFine(null, user._id);  // Pass null for res parameter
+      }
     }
     
   } catch (error) {
@@ -30,5 +32,5 @@ startServer()
     process.exit(1);
   });
 checkAndCreateFines();
-// setInterval(checkAndCreateFines, 10000); // 30000 milliseconds = 30 seconds
+setInterval(checkAndCreateFines, 10000); // 30000 milliseconds = 30 seconds
 

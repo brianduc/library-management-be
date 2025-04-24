@@ -73,61 +73,19 @@ async function createFine(res, fineData) {
   ]);
 }
 
-async function autoCreateFine(userId) {
 
-  const check_borrow_record = await BorrowRecord.find({ user_id: userId, is_returned: false });
-
-  if (check_borrow_record.length === 0) {
-    return;
-  }
-  for (const borrowRecord of check_borrow_record) {
-    const book = await Book.findById(borrowRecord.book_id);
-    const due_date = new Date(borrowRecord.due_date);
-    const current_date = new Date();
-
-    // Calculate difference in days
-    const diffTime = Math.abs(current_date - due_date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays > 0) {
-      // Calculate fine amount: 500 per day
-      const fineAmount = diffDays * 5000;
-      const fineReason = `Trả muộn sách ${diffDays} ngày`;
-
-      const fine = new Fine({
-        user_id: userId,
-        borrow_record_id: borrowRecord._id,
-        amount: fineAmount,
-        reason: fineReason,
-      });
-      await fine.save();
-    }
-  }
-}
 async function autoCreateFine(res, userId) {
   const check_borrow_record = await BorrowRecord.find({
     user_id: userId,
     is_returned: false,
   });
-
   const current_date = new Date();
 
   for (const borrowRecord of check_borrow_record) {
-    // Kiểm tra xem đã có phạt chưa trả cho bản ghi mượn này chưa
-    const existingFine = await Fine.findOne({
-      borrow_record_id: borrowRecord._id,
-      is_paid: false
-    });
-
-    // Nếu đã có phạt chưa trả, bỏ qua bản ghi này
-    if (existingFine) continue;
-
     const due_date = new Date(borrowRecord.due_date);
-
     if (current_date <= due_date) continue; // chưa quá hạn
 
     const diffTimeMs = current_date - due_date;
-
     // Tính số lần 10 giây đã trôi qua kể từ due_date
     const overTimes = Math.floor(diffTimeMs / (10 * 1000)); // mỗi 10 giây
     const fineAmount = overTimes * 1000;
@@ -149,13 +107,36 @@ async function autoCreateFine(res, userId) {
       fineReason = `Trễ ${totalSeconds} giây`;
     }
 
-    const fine = new Fine({
-      user_id: userId,
+    // Tìm fine hiện có cho bản ghi mượn này
+    const existingFine = await Fine.findOne({
       borrow_record_id: borrowRecord._id,
-      amount: fineAmount,
-      reason: fineReason,
+      is_paid: false
     });
-    await fine.save();
+
+    if (existingFine) {
+      // Nếu đã có fine chưa thanh toán, cập nhật amount và reason
+      existingFine.amount = fineAmount;
+      existingFine.reason = fineReason;
+      await existingFine.save();
+    } else {
+      // Kiểm tra xem đã có fine đã thanh toán chưa
+      const paidFine = await Fine.findOne({
+        borrow_record_id: borrowRecord._id,
+        is_paid: true
+      });
+
+      // Chỉ tạo fine mới nếu chưa có fine nào (cả đã thanh toán và chưa thanh toán)
+      if (!paidFine) {
+        const fine = new Fine({
+          user_id: userId,
+          borrow_record_id: borrowRecord._id,
+          amount: fineAmount,
+          reason: fineReason,
+          is_paid: false
+        });
+        await fine.save();
+      }
+    }
   }
 }
 
