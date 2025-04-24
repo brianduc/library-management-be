@@ -84,10 +84,38 @@ async function deleteUser(req, res, next) {
   }
 }
 
+async function lockUser(req, res, next) {
+  try {
+    const lockedUser = await userService.lockUser(req.params.id);
+    if (!lockedUser) return ResponseHandler.notFound(res, "User not found");
+    return ResponseHandler.success(res, {
+      message: "User locked successfully",
+      data: lockedUser,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function unlockUser(req, res, next) {
+  try {
+    const unlockedUser = await userService.unlockUser(req.params.id);
+    if (!unlockedUser) return ResponseHandler.notFound(res, "User not found");
+    return ResponseHandler.success(res, {
+      message: "User unlocked successfully",
+      data: unlockedUser,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
+  lockUser,
+  unlockUser,
 };
