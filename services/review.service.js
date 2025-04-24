@@ -5,11 +5,34 @@ const BorrowRecord = require("../models/borrow-record");
 const mongoose = require("mongoose");
 const ResponseHandler = require("../utils/response-handlers");
 
+
+
 async function getAllReviewsOfBook(res, bookId) {
   if (!mongoose.Types.ObjectId.isValid(bookId)) {
     return ResponseHandler.error(res, { message: "Invalid book ID format" });
   }
-  const reviews = await Review.find({ book_id: bookId });
+  const reviews = await Review.find({ book_id: bookId});
+  return reviews;
+}
+async function getAllReviewsOfBookbyuser(res, bookId, userId) {
+  if (!mongoose.Types.ObjectId.isValid(bookId)) {
+    return ResponseHandler.error(res, { message: "Invalid book ID format" });
+  }
+  const isBorrowed = await BorrowRecord.findOne({ book_id: bookId, user_id: userId, is_review: true});
+  const reviews = await Review.find({ book_id: bookId, user_id: userId});
+  
+  if (isBorrowed && (!reviews || reviews.length === 0)) {
+    // If there's a borrow record marked as reviewed but no actual reviews exist
+    // Return a default review object
+    return [{
+      book_id: bookId,
+      user_id: userId,
+      rating: 0,
+      comment: "No review content available",
+      is_default: true
+    }];
+  }
+  
   return reviews;
 }
 
@@ -114,5 +137,6 @@ module.exports = {
   updateReview,
   deleteReview,
   getAllReviewsOfBook,
-  getNotReviewedBooks
+  getNotReviewedBooks,
+  getAllReviewsOfBookbyuser
 };

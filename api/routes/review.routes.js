@@ -8,5 +8,5 @@ router.put("/:reviewId", authenticate, reviewController.updateReview);
 router.delete("/:reviewId", authenticate, reviewController.deleteReview);
 router.get("/not-reviewed", authenticate, reviewController.getNotReviewedBooks);
 router.get("/book/:bookId", reviewController.getAllReviewsOfBook);
-
+router.get("/book/:bookId/user", authenticate, reviewController.getAllReviewsOfBookbyuser);
 module.exports = router;

@@ -11,6 +11,17 @@ async function getAllReviewsOfBook(req, res, next) {
     next(err);
   }
 }
+async function getAllReviewsOfBookbyuser(req, res, next) {
+  try {
+    const reviews = await reviewService.getAllReviewsOfBookbyuser(res, req.params.bookId, req.user.id);
+    return ResponseHandler.success(res, {
+      message: "Reviews fetched successfully",
+      data: reviews,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
 async function createReview(req, res, next) {
   try {
     const review = await reviewService.createReview(res, req.body, req.user.id);
@@ -80,4 +91,5 @@ module.exports = {
   updateReview,
   deleteReview,
   getNotReviewedBooks,
+  getAllReviewsOfBookbyuser,
 };
