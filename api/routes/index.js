@@ -9,9 +9,9 @@ const categoryRoutes = require("./category.routes");
 
 const borrowRequestRoutes = require("./borrowRequest.routes");
 const borrowRecordRoutes = require("./borrowRecord.routes");
+const reviewRoutes = require("./review.routes");
 
-
-
+const fineRoutes = require("./fine.routes");
 const router = express.Router();
 
 // Health check specific to API
@@ -28,5 +28,6 @@ router.use("/categories", categoryRoutes);
 
 router.use("/borrow-requests", borrowRequestRoutes);
 router.use("/borrow-records", borrowRecordRoutes);
-
+router.use("/reviews", reviewRoutes);
+router.use("/fines", fineRoutes);
 module.exports = router;
