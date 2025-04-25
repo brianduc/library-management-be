@@ -11,7 +11,7 @@ const reviewSchema = new mongoose.Schema({
     ref: "Book",
     required: true,
   },
-  rating: { type: Number, min: 1, max: 5, required: true },
+  rating: { type: Number, min: 0, max: 5, required: true },
   comment: { type: String },
   created_at: { type: Date, default: Date.now },
 });
