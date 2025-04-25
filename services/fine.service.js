@@ -33,7 +33,7 @@ async function getFineByUser(res, userId) {
         model: 'Book',
         select: 'title author'
       }
-    });
+    }).populate('book_id', 'title author');
     if(fines.length === 0){
       return ResponseHandler.error(res, { message: "Do not have any fine" });
     }
